@@ -1,0 +1,86 @@
+{
+  "name": "Agentic Forecast MVP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "forecast",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "responseBody": "{\"accepted\":true}"
+      },
+      "name": "Respond Immediately",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        550,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// enrich/validate state\nreturn items;"
+      },
+      "name": "Init",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        550,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"callback_url\"]}}",
+        "options": {},
+        "jsonParameters": true,
+        "sendBody": true
+      },
+      "name": "Callback Progress",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        800,
+        380
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Respond Immediately",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Init",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init": {
+      "main": [
+        [
+          {
+            "node": "Callback Progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
