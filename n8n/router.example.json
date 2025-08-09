@@ -1,0 +1,178 @@
+{
+  "name": "Agentic Router (QA vs Strategy)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "forecast",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "responseBody": "{\"accepted\":true}"
+      },
+      "name": "Respond Immediately",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        510,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Initialize / validate input\n// items[0].json holds the state\nreturn items;"
+      },
+      "name": "Init",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        510,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Decide mode: qa | strategy\nconst s = items[0].json;\nlet mode = (s.mode || s.task || 'auto');\nif (mode === 'auto') {\n  if (Array.isArray(s.symbols) && s.symbols.length > 0) mode = 'strategy';\n  else if ((s.doc_text && s.doc_text.length > 100) || s.prompt) mode = 'qa';\n  else mode = 'qa';\n}\nitems[0].json.mode = mode;\nreturn items;"
+      },
+      "name": "Router",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        760,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "propertyName": "={{$json[\"mode\"]}}"
+      },
+      "name": "Switch Mode",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"callback_url\"]}}",
+        "jsonParameters": true,
+        "options": {
+          "bodyContentType": "json"
+        },
+        "sendBody": true,
+        "jsonBody": "{\"type\": \"completed\", \"result\": {\"mode\": \"qa\", \"metrics\": {\"qa\": {\"exact_match\": 0.7, \"f1\": 0.78}}, \"qa\": {\"question\": \"Demo Q\", \"answer\": \"Demo A\", \"confidence\": 0.9, \"support\": [{\"source\": \"doc.txt\", \"snippet\": \"...\"}]}, \"input\": {\"prompt\": \"Demo Q\", \"doc_name\": \"doc.txt\", \"symbols\": [], \"horizon_days\": 5, \"task\": \"qa\"}}}"
+      },
+      "name": "QA Completed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1240,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"callback_url\"]}}",
+        "jsonParameters": true,
+        "options": {
+          "bodyContentType": "json"
+        },
+        "sendBody": true,
+        "jsonBody": "{\"type\": \"progress\", \"value\": 0.5}"
+      },
+      "name": "Strategy Progress",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1240,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"callback_url\"]}}",
+        "jsonParameters": true,
+        "options": {
+          "bodyContentType": "json"
+        },
+        "sendBody": true,
+        "jsonBody": "{\"type\": \"completed\", \"result\": {\"mode\": \"strategy\", \"metrics\": {\"accuracy\": {\"rmse\": 1.2, \"mape\": 0.06, \"directional_accuracy\": 0.61}, \"strategy\": {\"sharpe\": 1.1, \"max_drawdown\": -0.12, \"win_rate\": 0.55}}, \"series\": {\"dates\": [], \"actual\": [], \"forecast\": [], \"lower\": [], \"upper\": []}, \"signals\": [{\"symbol\": \"SYMB1\", \"weight\": 0.3, \"reason\": \"demo\"}], \"equity_curve\": {\"dates\": [], \"equity\": []}, \"input\": {\"prompt\": null, \"doc_name\": null, \"symbols\": [\"SYMB1\"], \"horizon_days\": 5, \"task\": \"strategy\"}}}"
+      },
+      "name": "Strategy Completed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1480,
+        460
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Respond Immediately",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Init",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init": {
+      "main": [
+        [
+          {
+            "node": "Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router": {
+      "main": [
+        [
+          {
+            "node": "Switch Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Mode": {
+      "main": [
+        [
+          {
+            "node": "QA Completed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Strategy Progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

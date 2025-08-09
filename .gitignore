@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual envs
+.venv/
+.venv_frontend/
+
+# OS
+.DS_Store
+
+# Local env (keep secrets out of git)
+.env
