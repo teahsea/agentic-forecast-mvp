@@ -21,7 +21,7 @@ st.title("📊 Live Financial Trends & Investment Insights")
 #     return reports, sentiment, forecast
 
 
-reports_df, sentiment_df, forecast_df = load_data()
+# reports_df, sentiment_df, forecast_df = load_data()
 
 # --- Sidebar ---
 
