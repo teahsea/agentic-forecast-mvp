@@ -13,12 +13,12 @@ st.set_page_config(page_title="AI Financial Insights", page_icon="💹", layout=
 # --- Header ---
 st.title("📊 Live Financial Trends & Investment Insights")
 # --- Load Data ---
-@st.cache_data
-def load_data():
-    reports = pd.read_csv("data/reports_extracted.csv")
-    sentiment = pd.read_csv("data/sentiment.csv")
-    forecast = pd.read_csv("data/forecast.csv")
-    return reports, sentiment, forecast
+# @st.cache_data
+# def load_data():
+#     reports = pd.read_csv("data/reports_extracted.csv")
+#     sentiment = pd.read_csv("data/sentiment.csv")
+#     forecast = pd.read_csv("data/forecast.csv")
+#     return reports, sentiment, forecast
 
 
 reports_df, sentiment_df, forecast_df = load_data()
@@ -134,6 +134,8 @@ if st.button("Get Prediction"):
     pred_res.raise_for_status()
     result = pred_res.json()
     raw = pred_res.json().get("output", "")
+
+    st.write(raw)
     # Remove markdown fences
     cleaned = raw.strip()
     cleaned = cleaned.replace("```json", "").replace("```", "").strip()
@@ -156,5 +158,3 @@ if st.button("Get Prediction"):
         labels={"close": "Close Price"},
     )
     st.plotly_chart(fig, use_container_width=True)
-
-
